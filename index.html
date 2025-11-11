@@ -12,20 +12,28 @@
 <body>
   <h1>اتجاه القبلة</h1>
 
-  <div class="compass" id="compass">
-    <div class="gold-ring">
-      <div class="islamic-pattern"></div>
+  <div class="compass-container">
+    <div class="compass" id="compass">
+      <div class="gold-ring">
+        <div class="islamic-pattern"></div>
+      </div>
+      <div class="face"></div>
+
+      <!-- الاتجاهات -->
+      <div class="direction north">N</div>
+      <div class="direction south">S</div>
+      <div class="direction east">E</div>
+      <div class="direction west">W</div>
+
+      <!-- شعار القبلة على الحافة -->
+      <div class="qibla-marker" id="qiblaMarker">🕋</div>
+      
+      <!-- خط اتجاه القبلة -->
+      <div class="qibla-line" id="qiblaLine"></div>
+      
+      <!-- النقطة المركزية -->
+      <div class="center-dot"></div>
     </div>
-    <div class="face"></div>
-
-    <!-- الاتجاهات -->
-    <div class="direction north">N</div>
-    <div class="direction south">S</div>
-    <div class="direction east">E</div>
-    <div class="direction west">W</div>
-
-    <!-- شعار القبلة -->
-    <div class="qibla-marker" id="qiblaMarker">🕋</div>
   </div>
 
   <div class="location-info">
@@ -33,7 +41,7 @@
   </div>
 
   <button id="startBtn">ابدأ</button>
-  <p id="status">اضغط ابدأ ثم حرّك الهاتف حتى يتجه شعار القبلة نحو الأعلى.</p>
+  <p id="status">اضغط ابدأ ثم حرّك الهاتف حتى يتجه خط القبلة إلى الأعلى.</p>
 
   <script src="Qibla.js"></script>
 </body>
