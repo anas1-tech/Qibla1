@@ -1,3 +1,5 @@
+[file name]: Qibla.css
+[file content begin]
 :root{
   --bg:#0b0b0b;
   --gold:#d4af37;
@@ -15,6 +17,7 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 
 .compass{
   position:relative; width:320px; height:320px; margin:20px auto 10px;
+  /* لا ندور البوصلة ككل الآن */
 }
 
 /* الإطار الذهبي */
@@ -42,51 +45,6 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 }
 
 /* الاتجاهات الأربع */
-.marks span{
-  position:absolute; color:#e7d07a; font-weight:700; font-size:16px; opacity:.9;
-}
-.marks .n{top:10px; left:50%; transform:translateX(-50%);}
-.marks .s{bottom:10px; left:50%; transform:translateX(-50%);}
-.marks .e{right:10px; top:50%; transform:translateY(-50%);}
-.marks .w{left:10px; top:50%; transform:translateY(-50%);}
-
-/* الإبرة – قاعدة من المركز وسهم في النهاية */
-.needle {
-    width: 6px;
-    height: 38%;            /* خفّضنا طوله */
-    background-color: #d4af37;
-    position: absolute;
-    bottom: 50%;            /* يبدأ من فوق النقطة السوداء */
-    left: 50%;
-    transform-origin: bottom center;
-    transform: translateX(-50%) rotate(0deg);
-    border-radius: 10px;
-    z-index: 2;
-}
-
-.needle::after {
-    content: "";
-    position: absolute;
-    top: -16px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 16px solid #d4af37;
-}
-
-/* النقطة السوداء في المركز */
-.center-dot {
-    width: 14px;
-    height: 14px;
-    background-color: black;
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 3; /* فوق السهم */
-}
 .direction {
     position: absolute;
     color: #d4af37;
@@ -106,9 +64,43 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 /* غ */
 .west { left: 10%; top: 50%; transform: translateY(-50%); }
 
+/* شعار القبلة على الحافة */
+.qibla-marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* يبدأ من المركز */
+  font-size: 32px;
+  z-index: 3;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  animation: pulse 2s infinite;
+  /* سنقوم بنقل الشعار إلى الحافة باستخدام JavaScript */
+  /* سنستخدم خاصية transform لإزاحته إلى الحافة ثم تدويره */
+}
+
+@keyframes pulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* معلومات الموقع */
+.location-info {
+  margin: 15px 0;
+  padding: 10px;
+}
+
+.location-info p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 button{
   background:var(--gold); color:#111; border:0; border-radius:12px;
   padding:12px 26px; font-weight:700; cursor:pointer; font-size:16px;
+  margin: 10px 0;
 }
 #status{margin:12px 0 18px; color:var(--muted); font-size:15px;}
 .success{color:#19c37d !important; font-weight:700;}
+[file content end]
