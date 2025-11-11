@@ -12,89 +12,148 @@ function computeQibla(lat, lon){
 
 const compass = document.getElementById('compass');
 const qiblaMarker = document.getElementById('qiblaMarker');
+const qiblaLine = document.getElementById('qiblaLine');
 const statusEl = document.getElementById('status');
 const locationText = document.getElementById('locationText');
 let qibla = null;
+let userLocation = null;
 
 // بدء التشغيل بزر واحد
 document.getElementById('startBtn').addEventListener('click', startAll);
 
 async function startAll(){
   statusEl.textContent = 'جاري طلب الأذونات...';
+  statusEl.classList.remove('success');
 
   // iOS: إذن مستشعر الاتجاه
   if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function'){
     try{
       const res = await DeviceOrientationEvent.requestPermission();
-      if(res !== 'granted'){ statusEl.textContent = '❌ لم يتم منح إذن البوصلة.'; return; }
-    }catch(e){ statusEl.textContent = '❌ تعذّر إذن البوصلة.'; return; }
+      if(res !== 'granted'){ 
+        statusEl.textContent = '❌ لم يتم منح إذن البوصلة.'; 
+        return; 
+      }
+    }catch(e){ 
+      statusEl.textContent = '❌ تعذّر إذن البوصلة.'; 
+      return; 
+    }
   }
 
   // GPS
-  if(!navigator.geolocation){ statusEl.textContent='❌ المتصفح لا يدعم GPS.'; return; }
+  if(!navigator.geolocation){ 
+    statusEl.textContent='❌ المتصفح لا يدعم GPS.'; 
+    return; 
+  }
+  
   statusEl.textContent='جاري تحديد الموقع...';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    qibla = computeQibla(lat, lon);
-    
-    // تحديث نص موقع القبلة
-    locationText.textContent = `موقع القبلة: مكة المكرمة (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
-    
-    statusEl.textContent='حرّك الهاتف حتى يتجه شعار القبلة إلى الأعلى.';
-    window.addEventListener('deviceorientation', onOrient, true);
-  }, _=>{
-    statusEl.textContent='❌ فشل تحديد الموقع. فعّل GPS ومنح الإذن.';
-  }, {enableHighAccuracy:true, timeout:10000});
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      userLocation = { lat, lon };
+      qibla = computeQibla(lat, lon);
+      
+      // تحديث نص موقع القبلة
+      locationText.textContent = `موقع القبلة: مكة المكرمة | موقعك: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+      
+      statusEl.textContent = 'حرّك الهاتف حتى يتجه خط القبلة إلى الأعلى.';
+      
+      // بدء استشعار الحركة
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', onOrient, true);
+      } else {
+        statusEl.textContent = '❌ المتصفح لا يدعم استشعار الحركة.';
+      }
+    },
+    error => {
+      let errorMsg = '❌ فشل تحديد الموقع. ';
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          errorMsg += 'تم رفض الإذن. يرجى تفعيل GPS ومنح الإذن.';
+          break;
+        case error.POSITION_UNAVAILABLE:
+          errorMsg += 'معلومات الموقع غير متوفرة.';
+          break;
+        case error.TIMEOUT:
+          errorMsg += 'انتهت مهلة طلب الموقع.';
+          break;
+        default:
+          errorMsg += 'حدث خطأ غير معروف.';
+          break;
+      }
+      statusEl.textContent = errorMsg;
+    }, 
+    {
+      enableHighAccuracy: true, 
+      timeout: 15000,
+      maximumAge: 60000
+    }
+  );
 }
 
 // تنعيم الزاوية
 let current = 0;
-function norm(deg){ let d=(deg%360+360)%360; if(d>180)d-=360; return d; }
-function lerp(a,b,t){ return a+(b-a)*t; }
+function norm(deg){ 
+  let d = (deg % 360 + 360) % 360; 
+  if(d > 180) d -= 360; 
+  return d; 
+}
+
+function lerp(a, b, t){ 
+  return a + (b - a) * t; 
+}
 
 function onOrient(e){
-  if(qibla==null) return;
-  let heading = (typeof e.webkitCompassHeading==='number') ? e.webkitCompassHeading : (360 - (e.alpha||0));
-  if(isNaN(heading)) { statusEl.textContent='⚠️ فعّل مستشعر الحركة.'; return; }
+  if(qibla == null) return;
+  
+  let heading;
+  if (typeof e.webkitCompassHeading === 'number') {
+    // iOS
+    heading = e.webkitCompassHeading;
+  } else if (e.alpha !== null) {
+    // Android
+    heading = 360 - e.alpha;
+  } else {
+    statusEl.textContent = '⚠️ لم يتم اكتشاف مستشعر الاتجاه.';
+    return;
+  }
+  
+  if(isNaN(heading)) { 
+    statusEl.textContent = '⚠️ فعّل مستشعر الحركة والاتجاه.'; 
+    return; 
+  }
 
-  // حساب الزاوية التي يجب أن يدور فيها شعار القبلة
-  // الشعار يجب أن يدور ليشير إلى اتجاه القبلة بالنسبة للبوصلة
-  // إذا كانت القبلة في اتجاه 90 درجة (شرق) وكان الهاتف يشير إلى الشمال (0 درجة) فإن الشعار يجب أن يدور 90 درجة.
-  // لكننا نريد أن يكون الشعار في الحافة، لذا سنقوم بتدوير الشعار بحيث يكون موقعه على الحافة في الزاوية الصحيحة.
-
-  // الزاوية المطلوبة هي الفرق بين اتجاه القبلة واتجاه الهاتف
+  // تدوير البوصلة بأكملها لمواجهة القبلة
   let target = qibla - heading;
-  let delta  = norm(target - current);
-  current    = lerp(current, current + delta, 0.22);
+  let delta = norm(target - current);
+  current = lerp(current, current + delta, 0.15); // تنعيم الحركة
 
-  // تدوير شعار القبلة ليشير إلى الاتجاه الصحيح
-  // نستخدم `current` التي تم تنعيمها
-  // نريد أن نحرك الشعار إلى الحافة ثم ندوره ليشير إلى الخارج.
-  // سنقوم بتدوير الشعار حول المركز ثم نزحته إلى الحافة.
+  // تدوير البوصلة بأكملها
+  compass.style.transform = `rotate(${current}deg)`;
 
-  // نصف قطر البوصلة (ناقص نصف ارتفاع الشعار تقريبًا)
-  const radius = 140; // نصف قطر البوصلة الداخلية (بكسل)
-
-  // حساب الإزاحة بناء على الزاوية
-  const angleInRad = (current - 90) * Math.PI / 180; // نطرح 90 لأننا نريد أن يكون الأعلى هو 0
-  const x = radius * Math.cos(angleInRad);
-  const y = radius * Math.sin(angleInRad);
-
-  // تطبيق التحويلات: أولاً ندور الشعار ليكون متجهًا للخارج، ثم ننقله إلى الحافة
-  // لتدوير الشعار ليكون متجهًا للخارج، نضيف 90 درجة إلى الزاوية حتى يكون وجه الشعار للخارج.
-  const rotation = current; // يمكن تعديل هذه القيمة لضمان اتجاه الشعار بشكل صحيح
-
-  qiblaMarker.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg)`;
-
-  const ok = Math.abs(norm(target)) <= 6;
-  if(ok){
-    statusEl.textContent = 'اتجاه القبلة صحيح ✅';
-    statusEl.classList.add('success');
-    if(navigator.vibrate) navigator.vibrate([0,40,40,40]);
-  }else{
+  // التحقق إذا كان الاتجاه صحيحاً (هامش خطأ 5 درجات)
+  const isCorrect = Math.abs(norm(target)) <= 5;
+  
+  if(isCorrect){
+    if (!statusEl.classList.contains('success')) {
+      statusEl.textContent = '✓ اتجاه القبلة صحيح';
+      statusEl.classList.add('success');
+      // اهتزاز عند الوصول للقبلة
+      if(navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
+    }
+  } else {
     statusEl.classList.remove('success');
-    statusEl.textContent = 'اضغط ابدأ ثم حرّك الهاتف حتى يتجه شعار القبلة إلى الأعلى.';
+    const degreesOff = Math.abs(Math.round(norm(target)));
+    statusEl.textContent = `اتجه ${degreesOff}° ${norm(target) > 0 ? 'يساراً' : 'يميناً'}`;
   }
 }
+
+// إظهار معلومات التوجيه عند التحميل
+window.addEventListener('load', function() {
+  if (!navigator.geolocation) {
+    statusEl.textContent = '❌ المتصفح لا يدعم خدمة الموقع.';
+  }
+});
 [file content end]
