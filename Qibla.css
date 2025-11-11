@@ -12,18 +12,29 @@ body{
   margin:0; background:var(--bg); color:var(--text);
   font-family:'Tajawal', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   text-align:center;
+  padding: 20px;
 }
 h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 
+.compass-container {
+  position: relative;
+  width: 320px;
+  height: 320px;
+  margin: 20px auto 10px;
+}
+
 .compass{
-  position:relative; width:320px; height:320px; margin:20px auto 10px;
-  /* لا ندور البوصلة ككل الآن */
+  position:relative; 
+  width:100%; 
+  height:100%;
+  transition: transform 0.3s ease-out;
 }
 
 /* الإطار الذهبي */
 .gold-ring{
   position:absolute; inset:0; border-radius:50%;
   background: radial-gradient(circle at 50% 50%, transparent 64%, var(--gold) 64% 100%);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
 }
 
 /* زخرفة إسلامية خفيفة داخل الحلقة الذهبية */
@@ -42,6 +53,7 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 .face{
   position:absolute; inset:14px; border-radius:50%;
   background: radial-gradient(circle at 50% 45%, #1a1a1a, #111 65%);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
 /* الاتجاهات الأربع */
@@ -50,6 +62,7 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
     color: #d4af37;
     font-size: 18px;
     font-weight: bold;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
 }
 
 /* ن */
@@ -67,40 +80,113 @@ h1{margin:22px 0 8px; font-size:28px; font-weight:800}
 /* شعار القبلة على الحافة */
 .qibla-marker {
   position: absolute;
-  top: 50%;
+  top: 5%;
   left: 50%;
-  transform: translate(-50%, -50%); /* يبدأ من المركز */
-  font-size: 32px;
+  transform: translateX(-50%);
+  font-size: 28px;
   z-index: 3;
-  text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.7);
   animation: pulse 2s infinite;
-  /* سنقوم بنقل الشعار إلى الحافة باستخدام JavaScript */
-  /* سنستخدم خاصية transform لإزاحته إلى الحافة ثم تدويره */
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.1); }
-  100% { transform: translate(-50%, -50%) scale(1); }
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.1); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+
+/* خط اتجاه القبلة */
+.qibla-line {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 48%;
+  background: linear-gradient(to top, transparent 10%, #d4af37 90%);
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(0deg);
+  z-index: 2;
+  border-radius: 2px;
+}
+
+/* النقطة المركزية */
+.center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  background: #000;
+  border: 2px solid #d4af37;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
 }
 
 /* معلومات الموقع */
 .location-info {
-  margin: 15px 0;
-  padding: 10px;
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
 }
 
 .location-info p {
   margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 button{
-  background:var(--gold); color:#111; border:0; border-radius:12px;
-  padding:12px 26px; font-weight:700; cursor:pointer; font-size:16px;
-  margin: 10px 0;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color:#111; 
+  border: none; 
+  border-radius: 12px;
+  padding: 14px 32px; 
+  font-weight: 700; 
+  cursor: pointer; 
+  font-size: 16px;
+  margin: 15px 0;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  transition: all 0.3s ease;
 }
-#status{margin:12px 0 18px; color:var(--muted); font-size:15px;}
-.success{color:#19c37d !important; font-weight:700;}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+#status{
+  margin: 15px 0 20px; 
+  color: var(--muted); 
+  font-size: 15px;
+  min-height: 20px;
+  padding: 0 10px;
+}
+.success{
+  color:#19c37d !important; 
+  font-weight:700;
+  text-shadow: 0 0 10px rgba(25, 195, 125, 0.3);
+}
+
+/* توجيه للمستخدم */
+.instruction {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 10px;
+}
 [file content end]
